@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meat or Plant: a 60-second sorting test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Fraunces:ital,opsz,wght@1,9..144,500;1,9..144,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bun:#FFFFFF; --char:#222222; --soft:#6B6660; --line:#E6E1DA;
+  --ketchup:#D7321F; --pickle:#2F6B2C; --mustard:#E9A800;
+  --key:#F4F2EF; --keyText:#222222;
+  --sans:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bun:#1E1C1A; --char:#F3EFE9; --soft:#A9A39B; --line:#3A3632;
+    --key:#2C2926; --keyText:#F3EFE9; --ketchup:#F0503A; --pickle:#5FA457;
+  }
+}
+:root[data-theme="dark"]{
+  --bun:#1E1C1A; --char:#F3EFE9; --soft:#A9A39B; --line:#3A3632;
+  --key:#2C2926; --keyText:#F3EFE9; --ketchup:#F0503A; --pickle:#5FA457;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bun);color:var(--char);font-family:var(--sans);-webkit-font-smoothing:antialiased;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.screen{display:none;min-height:100%;flex-direction:column}
+.screen.on{display:flex}
+.wrap{width:100%;max-width:560px;margin:0 auto;padding:28px 22px}
+h1{font-weight:900;font-size:clamp(2.2rem,9vw,3.4rem);line-height:.95;letter-spacing:-.02em;margin:8px 0 18px}
+h1 .it{font-family:var(--serif);font-style:italic;font-weight:700;letter-spacing:-.01em}
+p{font-size:1.05rem;line-height:1.5;margin:0 0 14px;max-width:60ch}
+.small{font-size:.9rem;color:var(--soft)}
+.btn{appearance:none;border:0;border-radius:999px;background:var(--char);color:var(--bun);font:700 1.1rem var(--sans);padding:18px 28px;width:100%;cursor:pointer;margin-top:10px}
+.btn:focus-visible,.key:focus-visible{outline:3px solid var(--mustard);outline-offset:3px}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 22px}
+.legend div{border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.legend b{display:block;font-weight:900;font-size:1.05rem}
+.legend i{display:block;font-family:var(--serif);font-weight:500;font-size:1.05rem;color:var(--soft);margin-top:2px}
+
+/* test */
+#test .top{display:flex;justify-content:space-between;gap:14px;padding:18px 20px 0;max-width:640px;width:100%;margin:0 auto}
+.lab{font-size:1.25rem;line-height:1.15}
+.lab.r{text-align:right}
+.lab .f{display:block;font-weight:900}
+.lab .or{display:block;font-size:.8rem;color:var(--soft);margin:2px 0}
+.lab .a{display:block;font-family:var(--serif);font-style:italic;font-weight:700}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-height:180px}
+#word{font-size:clamp(2.6rem,12vw,4.4rem);text-align:center;padding:0 12px}
+#word.food{font-family:var(--sans);font-weight:900;letter-spacing:-.02em}
+#word.attr{font-family:var(--serif);font-style:italic;font-weight:700}
+#x{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:var(--ketchup);font-weight:900;font-size:2.4rem;visibility:hidden}
+.keys{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 14px;max-width:640px;width:100%;margin:0 auto}
+.key{appearance:none;border:0;border-radius:18px;background:var(--key);color:var(--keyText);height:min(34vh,240px);font:700 1rem var(--sans);cursor:pointer}
+.key:active{filter:brightness(.92)}
+.prog{height:4px;background:var(--line);margin:0 auto;max-width:640px;width:calc(100% - 24px);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.prog span{display:block;height:100%;width:0;background:var(--char);transition:width .15s linear}
+
+/* result card */
+#result{background:var(--card,var(--mustard));color:#fff}
+#result .card{flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;text-align:center}
+#verdict{font-weight:900;font-size:clamp(3rem,16vw,6rem);line-height:.9;letter-spacing:-.03em;margin:0}
+#verdict .it{font-family:var(--serif);font-style:italic;font-weight:700;letter-spacing:-.01em}
+#strength{font-size:1.2rem;font-weight:700;margin-top:16px;opacity:.95}
+#hold{margin-top:26px;font-size:1rem;opacity:.9}
+#result .more{background:var(--bun);color:var(--char)}
+#result .more .btn{background:var(--char);color:var(--bun)}
+.stat{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0;font-size:1rem}
+.stat b{font-weight:900}
+@media (prefers-reduced-motion: reduce){.prog span{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- Intro -->
+<section id="intro" class="screen on" aria-labelledby="t1">
+  <div class="wrap">
+    <h1 id="t1">Meat or plant. <span class="it">Tasty or bland.</span></h1>
+    <p>Sort words into two buttons as fast as you can. Two rounds, about a minute.</p>
+    <div class="legend" aria-label="Word categories">
+      <div><b>Meat</b><i>steak, bacon, brisket, pork chop</i></div>
+      <div><b>Plant</b><i>tofu, lentils, tempeh, chickpeas</i></div>
+      <div><b>Tasty</b><i>delicious, savory, satisfying, flavorful</i></div>
+      <div><b>Bland</b><i>bland, tasteless, boring, dull</i></div>
+    </div>
+    <p class="small">Food words appear in bold. Taste words appear in italics. A red X means wrong button: tap the other one to continue. Nothing you do here is saved or sent anywhere.</p>
+    <button class="btn" id="go">Start</button>
+  </div>
+</section>
+
+<!-- Block instructions -->
+<section id="brief" class="screen" aria-labelledby="t2">
+  <div class="wrap">
+    <p class="small" id="roundNo">Round 1 of 2</p>
+    <h1 id="t2">New pairings</h1>
+    <div class="legend">
+      <div><b>Left button</b><span id="bL"></span></div>
+      <div><b>Right button</b><span id="bR"></span></div>
+    </div>
+    <p>Go fast. Mistakes are fine.</p>
+    <button class="btn" id="begin">Start round</button>
+  </div>
+</section>
+
+<!-- Test -->
+<section id="test" class="screen" aria-live="polite">
+  <div class="top">
+    <div class="lab" id="labL"></div>
+    <div class="lab r" id="labR"></div>
+  </div>
+  <div class="stage"><div id="word"></div><div id="x" aria-hidden="true">✕</div></div>
+  <div class="prog"><span id="bar"></span></div>
+  <div class="keys">
+    <button class="key" id="kL" aria-label="Left">Left</button>
+    <button class="key" id="kR" aria-label="Right">Right</button>
+  </div>
+</section>
+
+<!-- Result -->
+<section id="result" class="screen">
+  <div class="card">
+    <p id="verdict"></p>
+    <div id="strength"></div>
+    <div id="hold">Hold your phone up so the room can see.</div>
+  </div>
+  <div class="more">
+    <div class="wrap">
+      <div class="stat"><span>Meat with tasty (avg)</span><b id="sA"></b></div>
+      <div class="stat"><span>Meat with bland (avg)</span><b id="sB"></b></div>
+      <div class="stat"><span>Speed gap</span><b id="sGap"></b></div>
+      <div class="stat"><span>Mistakes</span><b id="sErr"></b></div>
+      <p class="small" style="margin-top:16px" id="note"></p>
+      <p class="small">What this is: a shortened version of the Implicit Association Test. Sorting is faster when two concepts that feel linked share a button. The gap between rounds is the association.</p>
+      <p class="small">What this is not: a valid measure of you. The real test uses about 180 trials; this uses 32 scored ones. Treat the room's pattern as the interesting part, not your own score.</p>
+      <button class="btn" id="again">Take it again</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var W = {
+    meat:["Steak","Bacon","Brisket","Pork chop"],
+    plant:["Tofu","Lentils","Tempeh","Chickpeas"],
+    tasty:["Delicious","Savory","Satisfying","Flavorful"],
+    bland:["Bland","Tasteless","Boring","Dull"]
+  };
+  var NAME = {meat:"Meat",plant:"Plant",tasty:"Tasty",bland:"Bland"};
+  var FOOD = {meat:1,plant:1};
+  // Block A: meat+tasty / plant+bland. Block B: meat+bland / plant+tasty.
+  var BLOCKS = {
+    A:{L:["meat","tasty"],R:["plant","bland"]},
+    B:{L:["meat","bland"],R:["plant","tasty"]}
+  };
+  var WARM = 4, PER = 20;
+
+  var order, bi, trials, ti, t0, waiting, data, errs;
+  var $ = function(id){return document.getElementById(id);};
+
+  function show(id){
+    ["intro","brief","test","result"].forEach(function(s){$(s).classList.toggle("on", s===id);});
+    window.scrollTo(0,0);
+  }
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+  function buildTrials(){
+    var all=[];
+    Object.keys(W).forEach(function(c){W[c].forEach(function(w){all.push({w:w,c:c});});});
+    var list = all.slice();
+    for(var k=0;k<PER-all.length;k++) list.push(all[Math.floor(Math.random()*all.length)]);
+    // shuffle until no word repeats back to back
+    for(var tries=0;tries<50;tries++){
+      shuffle(list);
+      var ok=true;
+      for(var i=1;i<list.length;i++){ if(list[i].w===list[i-1].w){ok=false;break;} }
+      if(ok) break;
+    }
+    return list;
+  }
+
+  function labHTML(side){
+    return '<span class="f">'+NAME[side[0]]+'</span><span class="or">or</span><span class="a">'+NAME[side[1]]+'</span>';
+  }
+
+  function startAll(){
+    order = Math.random()<0.5 ? ["A","B"] : ["B","A"];
+    bi = 0; data = []; errs = {A:0,B:0};
+    briefBlock();
+  }
+
+  function briefBlock(){
+    var b = BLOCKS[order[bi]];
+    $("roundNo").textContent = "Round "+(bi+1)+" of 2";
+    $("t2").textContent = bi===0 ? "First pairings" : "The pairings switch";
+    $("bL").innerHTML = labHTML(b.L);
+    $("bR").innerHTML = labHTML(b.R);
+    show("brief");
+  }
+
+  function beginBlock(){
+    var b = BLOCKS[order[bi]];
+    $("labL").innerHTML = labHTML(b.L);
+    $("labR").innerHTML = labHTML(b.R);
+    trials = buildTrials(); ti = 0;
+    show("test");
+    $("word").textContent = "";
+    setTimeout(nextTrial, 600);
+  }
+
+  function nextTrial(){
+    if(ti>=trials.length){ bi++; if(bi<2){ briefBlock(); } else { finish(); } return; }
+    var tr = trials[ti];
+    var el = $("word");
+    el.className = FOOD[tr.c] ? "food" : "attr";
+    el.textContent = tr.w;
+    $("x").style.visibility = "hidden";
+    $("bar").style.width = ((ti + bi*PER) / (PER*2) * 100) + "%";
+    t0 = performance.now();
+    waiting = true; tr.err = false;
+  }
+
+  function respond(side){
+    if(!waiting) return;
+    var tr = trials[ti];
+    var b = BLOCKS[order[bi]];
+    var correct = b[side].indexOf(tr.c) !== -1;
+    if(!correct){
+      if(!tr.err){ errs[order[bi]]++; }
+      tr.err = true;
+      $("x").style.visibility = "visible";
+      return;
+    }
+    waiting = false;
+    var rt = performance.now() - t0;
+    data.push({block:order[bi], idx:ti, rt:rt, err:tr.err});
+    ti++;
+    $("word").textContent = "";
+    $("x").style.visibility = "hidden";
+    setTimeout(nextTrial, 220);
+  }
+
+  function mean(a){return a.reduce(function(s,x){return s+x;},0)/a.length;}
+  function sd(a){var m=mean(a);return Math.sqrt(a.reduce(function(s,x){return s+(x-m)*(x-m);},0)/(a.length-1));}
+
+  function finish(){
+    $("bar").style.width = "100%";
+    var scored = data.filter(function(d){return d.idx>=WARM && d.rt<10000;});
+    var fast = scored.filter(function(d){return d.rt<300;}).length;
+    var use = scored.filter(function(d){return d.rt>=300 && d.rt<=3000;});
+    var A = use.filter(function(d){return d.block==="A";}).map(function(d){return d.rt;});
+    var B = use.filter(function(d){return d.block==="B";}).map(function(d){return d.rt;});
+    var res = $("result");
+
+    if(A.length<8 || B.length<8){
+      res.style.setProperty("--card","#6B6660");
+      $("verdict").innerHTML = "Not enough data";
+      $("strength").textContent = "Too many slow or skipped answers to score.";
+      fillStats(A,B,null);
+      $("note").textContent = "Try again and answer each word within a couple of seconds.";
+      show("result"); return;
+    }
+
+    var mA = mean(A), mB = mean(B);
+    var D = (mB - mA) / sd(A.concat(B));
+    var mag = Math.abs(D);
+    var strength = mag<0.15 ? "" : mag<0.35 ? "Slight" : mag<0.65 ? "Moderate" : "Strong";
+    var cs = getComputedStyle(document.documentElement);
+
+    if(D>=0.15){
+      res.style.setProperty("--card", cs.getPropertyValue("--ketchup"));
+      $("verdict").innerHTML = 'Meat = <span class="it">tasty</span>';
+      $("strength").textContent = strength+" association";
+    } else if(D<=-0.15){
+      res.style.setProperty("--card", cs.getPropertyValue("--pickle"));
+      $("verdict").innerHTML = 'Plant = <span class="it">tasty</span>';
+      $("strength").textContent = strength+" association";
+    } else {
+      res.style.setProperty("--card", "#B98600");
+      $("verdict").innerHTML = 'No clear <span class="it">link</span>';
+      $("strength").textContent = "Your two rounds were about equally fast";
+    }
+    fillStats(A,B,mB-mA);
+    var notes=[];
+    if(fast > scored.length*0.1) notes.push("Many answers came in under 300 ms, which usually means guessing. Treat this result loosely.");
+    notes.push("The order of the two rounds was randomized, so the room's pattern isn't just a practice effect.");
+    $("note").textContent = notes.join(" ");
+    show("result");
+  }
+
+  function fillStats(A,B,gap){
+    $("sA").textContent = A.length ? Math.round(mean(A))+" ms" : "n/a";
+    $("sB").textContent = B.length ? Math.round(mean(B))+" ms" : "n/a";
+    if(gap===null){ $("sGap").textContent = "n/a"; }
+    else { var g=Math.round(gap); $("sGap").textContent = g===0 ? "0 ms" : Math.abs(g)+" ms faster with "+(g>0?"meat + tasty":"plant + tasty"); }
+    $("sErr").textContent = (errs.A+errs.B)+" of "+(PER*2);
+  }
+
+  $("go").addEventListener("click", startAll);
+  $("begin").addEventListener("click", beginBlock);
+  $("again").addEventListener("click", startAll);
+  $("kL").addEventListener("pointerdown", function(e){e.preventDefault(); respond("L");});
+  $("kR").addEventListener("pointerdown", function(e){e.preventDefault(); respond("R");});
+  document.addEventListener("keydown", function(e){
+    if(!$("test").classList.contains("on")) return;
+    var k = e.key.toLowerCase();
+    if(k==="e"||k==="arrowleft"){ e.preventDefault(); respond("L"); }
+    else if(k==="i"||k==="arrowright"){ e.preventDefault(); respond("R"); }
+  });
+})();
+</script>
+</body>
+</html>
